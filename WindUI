@@ -13036,25 +13036,97 @@ do
         AI.System = opts.System or ("You are " .. aiName .. ", a concise in-game assistant inside a Roblox script hub. Keep answers short.")
         AI.Messages = {}
 
-        local function ask(prompt)
-            if opts.Ask then return opts.Ask(prompt, AI.Messages) end
+                local function ask(prompt)
+            if opts.Ask then
+                return opts.Ask(prompt, AI.Messages)
+            end
+
             local reqFn = getRequest()
-            if not reqFn then return "No HTTP request function found in this executor." end
-            if not apiKey then return "No Groq ApiKey set. Pass ApiKey in AttachAI." end
-            local body = { model = model, messages = { { role = "system", content = AI.System } } }
-            for _, m in ipairs(AI.Messages) do table.insert(body.messages, { role = m.role, content = m.content }) end
+
+            if not reqFn then
+                return "No HTTP request function found in this executor."
+            end
+
+            if not apiKey then
+                return "No API key set. Pass ApiKey in AttachAI."
+            end
+
+            local body = {
+                model = model,
+                messages = {
+                    {
+                        role = "system",
+                        content = AI.System
+                    }
+                }
+            }
+
+            for _, m in ipairs(AI.Messages) do
+                table.insert(body.messages, {
+                    role = m.role,
+                    content = m.content
+                })
+            end
+
             local res = safe(reqFn, {
                 Url = endpoint,
                 Method = "POST",
-                Headers = { ["Content-Type"] = "application/json", ["Authorization"] = "Bearer " .. apiKey },
-                Body = HttpService:JSONEncode(body),
+                Headers = {
+                    ["Content-Type"] = "application/json",
+                    ["Authorization"] = "Bearer " .. apiKey
+                },
+                Body = HttpService:JSONEncode(body)
             })
-            local raw = res and (res.Body or res.body)
-            if not raw then return "Request failed (no response)." end
-            local data = safe(function() return HttpService:JSONDecode(raw) end)
-            if data and data.choices and data.choices[1] and data.choices[1].message then return data.choices[1].message.content end
-            if data and data.error and data.error.message then return "API error: " .. tostring(data.error.message) end
-            return "Could not parse the AI response."
+
+            if not res then
+                return "Request failed."
+            end
+
+            local raw = res.Body or res.body
+
+            if not raw or raw == "" then
+                return "Request failed (empty response)."
+            end
+
+            local data = safe(function()
+                return HttpService:JSONDecode(raw)
+            end)
+
+            if not data then
+                return "Invalid JSON response."
+            end
+
+            if data.error then
+                if type(data.error) == "table" then
+                    return "API error: " .. tostring(data.error.message or data.error.code or "Unknown error")
+                end
+
+                return "API error: " .. tostring(data.error)
+            end
+
+            local choice = data.choices and data.choices[1]
+
+            if not choice then
+                return "API error: No choices returned."
+            end
+
+            local message = choice.message
+
+            if message then
+                if message.content and tostring(message.content) ~= "" then
+                    return tostring(message.content)
+                end
+
+                if message.reasoning and tostring(message.reasoning) ~= "" then
+                    return tostring(message.reasoning)
+                end
+            end
+
+            if choice.text and tostring(choice.text) ~= "" then
+                return tostring(choice.text)
+            end
+
+            return "API error: Empty AI response."
         end
 
         local accentOverride = opts.Accent
