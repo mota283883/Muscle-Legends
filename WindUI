@@ -13058,7 +13058,9 @@ do
                         role = "system",
                         content = AI.System
                     }
-                }
+                },
+                include_reasoning = false,
+                reasoning_effort = "low"
             }
 
             for _, m in ipairs(AI.Messages) do
