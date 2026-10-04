@@ -10876,6 +10876,8 @@ PaddingRight=UDim.new(0,au.UIPadding/2),
 })
 })
 
+au.UIElements.UserPanel = aB
+
 
 function au.User.Enable(aC)
 au.User.Enabled=true
@@ -11535,16 +11537,23 @@ function au.Minimize()
     if au.IsMinimized then
         au.UIElements.MainBar.Visible = true
         au.UIElements.SideBarContainer.Visible = true
+        if au.UIElements.UserPanel then
+            au.UIElements.UserPanel.Visible = true
+        end
         am(au.UIElements.Main, 0.35, {Size = au.OriginalSize}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
         au.IsMinimized = false
     else
         au.OriginalSize = au.UIElements.Main.Size
         au.UIElements.MainBar.Visible = false
         au.UIElements.SideBarContainer.Visible = false
+        if au.UIElements.UserPanel then
+            au.UIElements.UserPanel.Visible = false
+        end
         am(au.UIElements.Main, 0.35, {Size = UDim2.new(au.OriginalSize.X.Scale, au.OriginalSize.X.Offset, 0, au.Topbar.Height)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
         au.IsMinimized = true
     end
 end
+
 
 au:CreateTopbarButton("Minimize","minus",function()
     au:Minimize()
