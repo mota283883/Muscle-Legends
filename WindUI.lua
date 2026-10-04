@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://api.obscuravm.com/scripts/4429368364921971171"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Mystery-Center/Mystery-Loader/refs/heads/main/Main.lua"))()
